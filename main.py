@@ -7,6 +7,8 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.optim as optim
 from sklearn.cluster import KMeans
+
+from helper import showPlot, timeSince, sent2indexes, indexes2sent
 from model import *
 
 use_cuda = torch.cuda.is_available()
@@ -264,7 +266,6 @@ def train(embedder, encoder, topic_picker, first_word_picker, decoder,
                 question, target = batch_q[i].view(1,-1), batch_ans[i].view(1,-1)
                 sampled_sentence = sample(embedder, encoder, topic_picker, first_word_picker, decoder, question, vocab)
                 ivocab = {v: k for k, v in vocab.items()}
-                #TO DO: INDEXES2SENT TO DOOOOOOOOOOOOOOOOOO
                 print('question: %s'%(indexes2sent(question.squeeze().numpy(), ivocab, ignore_tok=EOS_token)))
                 print('target: %s'%(indexes2sent(target.squeeze().numpy(), ivocab, ignore_tok=EOS_token)))
                 print('predicted: %s'%(sampled_sentence))
@@ -283,8 +284,45 @@ def train(embedder, encoder, topic_picker, first_word_picker, decoder,
             plot_losses.append(plot_loss_avg)
             print_loss_total, print_loss_topic, print_loss_word, print_loss_decoder = 0., 0., 0., 0.
     
-    #showPlot(plot_losses)
+    showPlot(plot_losses)
 
+def sample(embedder, encoder, topic_picker, first_word_picker, decoder, question, vocab):
+    ivocab = {v: k for k, v in vocab.items()}
+    q = Variable(question) # shape: [batch_sz (=1) x seq_len]
+    q = q.cuda() if use_cuda else q
+    
+    #emb
+    emb_q = embedder(q)
+
+    #net1
+    _, h = encoder(emb_q)
+
+    #net2
+    topic_score = topic_picker(h)
+    max_topic_score, _ = torch.max(topic_score)
+    topic_score = (topic_score >= max_topic_score).float()
+
+    #net4
+    first_word_score = first_word_picker(h)
+    max_word_score, _ = torch.max(first_word_score)
+    first_word_score = (first_word_score >= max_word_score).float()
+
+    #net3
+    pred = decoder(h, topic_score, training=False, first_word=first_word_score)
+    pred = torch.squeeze(pred, 0)
+
+    decoded_words = []
+    seq_size = pred.shape[0]
+    for i in range(seq_size):
+        _, word_index = tensor.max(pred[i])
+        decoded_words.append(ivocab[word_index])
+        if ni == EOS_token:
+            decoded_words.append('<EOS>')
+            break
+        else:
+            decoded_words.append(ivocab[ni])
+
+    return ' '.join(decoded_words)
 
 
 '''

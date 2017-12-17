@@ -115,7 +115,7 @@ class Decoder(nn.Module):
     #hidden: [batch_sz, 2*hidden_size]
     #topic_score: [batch_sz, topic_size]
     #target: [batch_sz, max_ans_length, voca_size]
-    #first_word: [batch_sz, 1, voca_size]
+    #first_word: [batch_sz, voca_size]
     #output: [batch_sz, max_ans_length, voca_size]
     def forward(self, hidden, topic_score, training=False, target=None, first_word=None):
         #test
@@ -131,6 +131,8 @@ class Decoder(nn.Module):
         #prepare first_word
         if training:
             first_word = target.narrow(1,0,1) #shape: [batch_sz, 1, voca_size]
+        else:
+            first_word = torch.unsqueeze(first_word, 1)
 
         #init
         output = first_word #shape: [batch_sz, 1, voca_size]
