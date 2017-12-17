@@ -39,7 +39,7 @@ class Picker(nn.Module):
         self.l1 = nn.Linear(hidden_size*2, relu_size)
         self.l2 = nn.Linear(relu_size, output_size)
         self.drop = nn.Dropout(p=0.2)
-        self.sm = nn.Softmax()
+        self.sm = nn.Softmax(dim=1)
 
     #input hidden: [batch_sz, 2*hidden_size]
     #output score: [batch_sz, score_size]
@@ -62,7 +62,7 @@ class LatentPicker(nn.Module):
         self.l_logvar = nn.Linear(hidden_size*2, latent_size)
         self.l1 = nn.Linear(hidden_size*2 + latent_size, relu_size)
         self.l2 = nn.Linear(relu_size, output_size)
-        self.sm = nn.Softmax()
+        self.sm = nn.Softmax(dim=1)
         self.drop = nn.Dropout(p=0.2)
         self.training = training
 
@@ -99,7 +99,7 @@ class Decoder(nn.Module):
         self.voca_size = voca_size
         self.gru = nn.GRU(self.voca_size, self.hidden_var_size,  dropout=0.2, batch_first=True)
         self.max_ans_length = max_ans_length
-        self.sm = nn.Softmax()
+        self.sm = nn.Softmax(dim=2)
         self.relu = nn.PReLU()
         self.l = nn.Linear(self.hidden_var_size, voca_size)
         for w in self.gru.parameters(): # initialize the gate weights with orthogonal
@@ -152,9 +152,7 @@ class Decoder(nn.Module):
             new_word, hidden_var = self.step(prev_word, hidden_var) #new_word: [batch_sz x 1 x hid_sz] (1=seq_len)
             
             #softmax
-            new_word = torch.squeeze(new_word, dim=1)
             new_word = self.sm(new_word)
-            new_word = new_word.unsqueeze(1)
 
             #store in output
             output = torch.cat((output, new_word), 1) #output: [batch_sz, time_step + 1, voca_size]
