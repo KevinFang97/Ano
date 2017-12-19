@@ -1,14 +1,14 @@
-q w e r t y u i o p a s d
-q w e r t y u i o p a s d
-q w e r t y u i o p a s d
-q w e r t y u i o p a s d
-q w e r t
-q w e r t
-q w e r t
-q w e r t
-q w e r t
-q w e r t
-q w e r t
-q w e r t
-q w e r t
-r u q o p w
+q w e r t	y u i o p a s d
+q w e r t	y u i o p a s d
+q w e r t	y u i o p a s d
+q w e r t	y u i o p a s d
+q w	e r t
+q w	e r t
+q w	e r t
+q w	e r t
+q w	e r t
+q w	e r t
+q w	e r t
+q w	e r t
+q w	e r t
+r u	q o p w

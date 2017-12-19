@@ -1,60 +1,76 @@
+import sys
+import torch 
+import torch.utils.data as data
+import tables
+import numpy as np
+import unicodedata
+import re
 import string
 import json
 import collections
 
-if __name__ == '__main__':
+def textproc(s):
+    s=s.lower()
+    s=s.replace('\'s ','is ')
+    s=s.replace('\'re ','are ')
+    s=s.replace('\'m ', 'am ')
+    s=s.replace('\'ve ', 'have ')
+    s=s.replace('\'ll ','will ')
+    s=s.replace('n\'t ', 'not ')
+    s=s.replace(' wo not',' will not')
+    s=s.replace(' ca not',' can not')
+    s=re.sub('[\!;-]+','',s)
+    s=re.sub('\.+','.',s)
+    if s.endswith(' .'):
+        s=s[:-2]
+    s=re.sub('\s+',' ',s)
+    s=s.strip()
+    return s
 
-    # convert opensubtitle data into TFRecord, and save the dictionary (int -> word) to json file
-
-    train_data_load_path = "data/train.txt"
-    # int -> word dictionary
-    dictionary_save_path = "data/dictionary.json"
-    # how many words should be added into dictionary
-    num_words = 9
-    # larger batch size speeds up the process but needs larger memory
-    process_batch_size = 2
-    # (for validating) determine maximum question-answer pairs to convert & save, use -1 to process all pairs
-    train_num_pairs = -1
-
-    train_file = open(train_data_load_path, "r")
-    dictionary_file = open(dictionary_save_path, "w")
-
-    train_linecount = 0
-    if train_num_pairs == -1:
-        for train_linecount, _ in enumerate(train_file):
-            pass
-        train_linecount += 1
-    else:
-        train_linecount = train_num_pairs
-
-    words = []
-
-    #process and save QA pairs
-    print("Creating dictionary...")
-    train_file.seek(0)
+def create_dict(train_file, vocab_size):
+    file=open(train_file,'r')
     counter = collections.Counter()
-    for i in range(train_linecount):
-        line = train_file.readline().translate(
-            string.maketrans("", ""), string.punctuation)
+    line_count = 0.0
+    word_count = 0.0
+    for i, qaline in enumerate(file):
+        line_count += 1
+        line = qaline.translate(string.maketrans("", ""), string.punctuation)
         if line == "":
             break
-        words += line.split()
-        # texts.append([question, answer])
+        line=textproc(line)
+        words = line.split()
+        word_count += len(words)
+        counter.update(words)
         if i % process_batch_size == 0 and i:
-            print(str(i) + "/" + str(train_linecount))
-            counter.update(
-                dict(collections.Counter(words).most_common(num_words)))
-            words = []
-    counter.update(dict(collections.Counter(words).most_common(num_words)))
-    del words
-    train_file.close()
+            print(str(i))
+    file.close()
 
-    count = [['UNK', -1], ['<GO>', -1], ['<EOS>', -1]]
-    count.extend(counter.most_common(num_words - 1))  # minus 1 for UNK
-    del counter
-    dictionary = dict()
-    for word, _ in count:
+    dictionary = {'UNK': 2, '<SOS>':1, '<EOS>': 0}
+    prob_dict = {'UNK': line_count/word_count, '<SOS>':line_count/word_count, '<EOS>': line_count/word_count}
+    count=counter.most_common(vocab_size - 3)  # minus 1 for UNK
+    for word, freq in count:
+        if word=='':
+            continue
         dictionary[word] = len(dictionary)
-    reversed_dictionary = dict(zip(dictionary.values(), dictionary.keys()))
-    dictionary_file.write(json.dumps(reversed_dictionary))
-    del reversed_dictionary
+        prob_dict[word] = float(freq) / word_count
+
+    return dictionary, prob_dict
+
+if __name__ == '__main__':
+
+    data_path="./data/"
+    file_in = data_path+"train.txt"
+    # int -> word dict
+    dict_path = data_path+"dictionary.json"
+    prob_dict_path = data_path+"prob_dict.json"
+    # how many words should be added into dict
+    vocab_size = 9
+    # larger batch size speeds up the process but needs larger memory
+    process_batch_size = 3
+    
+    print ("creating dictionary...")
+    vocab, prob_dict =create_dict(file_in, vocab_size)
+    dict_file = open(dict_path, "w")
+    dict_file.write(json.dumps(vocab))
+    prob_dict_file = open(prob_dict_path, "w")
+    prob_dict_file.write(json.dumps(prob_dict))
