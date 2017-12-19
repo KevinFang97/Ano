@@ -9,6 +9,8 @@ from sklearn.cluster import KMeans
 from model import *
 from main import *
 
+#test train_once
+
 
 if __name__ == '__main__':
     n_words = 10
