@@ -8,10 +8,12 @@ from torch.autograd import Variable
 import torch.optim as optim
 from sklearn.cluster import KMeans
 
+
 from helper import showPlot, timeSince, sent2indexes, indexes2sent
 from model import *
 
-use_cuda = torch.cuda.is_available()
+#use_cuda = torch.cuda.is_available()
+use_cuda = False
 
 #basic settings
 use_SOS_token = False
@@ -299,12 +301,12 @@ def sample(embedder, encoder, topic_picker, first_word_picker, decoder, question
 
     #net2
     topic_score = topic_picker(h)
-    max_topic_score, _ = torch.max(topic_score)
+    max_topic_score = torch.max(topic_score)
     topic_score = (topic_score >= max_topic_score).float()
 
     #net4
     first_word_score = first_word_picker(h)
-    max_word_score, _ = torch.max(first_word_score)
+    max_word_score, _ = torch.max(first_word_score, 1)
     first_word_score = (first_word_score >= max_word_score).float()
 
     #net3
@@ -314,13 +316,14 @@ def sample(embedder, encoder, topic_picker, first_word_picker, decoder, question
     decoded_words = []
     seq_size = pred.shape[0]
     for i in range(seq_size):
-        _, word_index = tensor.max(pred[i])
-        decoded_words.append(ivocab[word_index])
-        if ni == EOS_token:
+        _, decoder_output = torch.max(pred[i], 0)
+        word_index = decoder_output.data.cpu().numpy()[0]
+        print(i, ": ", word_index)
+        if word_index == EOS_token:
             decoded_words.append('<EOS>')
             break
         else:
-            decoded_words.append(ivocab[ni])
+            decoded_words.append(ivocab[word_index])
 
     return ' '.join(decoded_words)
 
