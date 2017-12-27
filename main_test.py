@@ -52,7 +52,14 @@ if __name__ == '__main__':
     first_word_picker_optimizer=optim.Adam(first_word_picker.parameters(), lr=learning_rate)
     decoder_optimizer=optim.Adam(decoder.parameters(), lr=learning_rate)
 
-    l1,l2,l3,l0 = train_once(embedder, encoder, topic_picker, first_word_picker, decoder, batch_q, batch_ans, batch_topic, topic_size, voca_size, topic_loss_weight, word_loss_weight, embedder_optimizer, encoder_optimizer, topic_picker_optimizer, first_word_picker_optimizer, decoder_optimizer)
+    nll_loss = nn.NLLLoss()
+    CE_loss = torch.nn.CrossEntropyLoss()
+
+    l1,l2,l3,l0 = train_once(embedder, encoder, topic_picker, first_word_picker, decoder, 
+    	batch_q, batch_ans, batch_topic, topic_size, voca_size, 
+    	topic_loss_weight, word_loss_weight, 
+    	embedder_optimizer, encoder_optimizer, topic_picker_optimizer, first_word_picker_optimizer, decoder_optimizer, 
+    	nll_loss, CE_loss)
     print(l1)
     print(l2)
     print(l3)

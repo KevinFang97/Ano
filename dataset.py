@@ -1,3 +1,8 @@
+#store all data in memory:
+#use 3 array: q, ans, topic
+
+#retrieved these data from .txt --- written in preprocess.py
+
 class UbuntuDataset(data.Dataset):
     def __init__(self, filepath, length_path):
         length_file = open(length_path, 'r')

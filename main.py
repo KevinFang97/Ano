@@ -46,7 +46,9 @@ def one_hot(seq_batch,depth):
 #voca_size: int
 #topic_loss_weight: double
 #word_loss_weight: double
-def train_once(embedder, encoder, topic_picker, first_word_picker, decoder, batch_q, batch_ans, batch_topic, topic_size, voca_size, topic_loss_weight, word_loss_weight, embedder_optimizer, encoder_optimizer, topic_picker_optimizer, first_word_picker_optimizer, decoder_optimizer, nll_loss, CE_loss):
+def train_once(embedder, encoder, topic_picker, first_word_picker, decoder, 
+	batch_q, batch_ans, batch_topic, topic_size, voca_size, topic_loss_weight, word_loss_weight, 
+	embedder_optimizer, encoder_optimizer, topic_picker_optimizer, first_word_picker_optimizer, decoder_optimizer, nll_loss, CE_loss):
     batch_size = batch_q.size()[0]
     emb_q = embedder(batch_q) #batch__emb_q: [batch_size, max_q_length, embedded_size]
     
@@ -142,7 +144,8 @@ def train(embedder, encoder, topic_picker, first_word_picker, decoder,
 
         topic_loss,first_word_loss,decoder_loss,total_loss = train_once(embedder, encoder, topic_picker, first_word_picker, decoder, 
                 batch_q, batch_ans, batch_topic, topic_size, voca_size, topic_loss_weight, word_loss_weight, 
-                embedder_optimizer, encoder_optimizer, topic_picker_optimizer, first_word_picker_optimizer, decoder_optimizer)
+                embedder_optimizer, encoder_optimizer, topic_picker_optimizer, first_word_picker_optimizer, decoder_optimizer, 
+                nll_loss, CE_loss)
 
         print_loss_total += total_loss
         print_loss_decoder += decoder_loss
