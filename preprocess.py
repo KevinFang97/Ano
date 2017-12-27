@@ -173,8 +173,8 @@ if __name__ == '__main__':
 
     length_path = "data/data_length.txt"
     train_dataset_path = "data/train_dataset.txt"
-    valid_dataset_path = "data/train_dataset.txt"
-    test_dataset_path = "data/train_dataset.txt"
+    valid_dataset_path = "data/valid_dataset.txt"
+    test_dataset_path = "data/test_dataset.txt"
 
     qa_size, q, ans, q_prob, ans_prob, max_q_length, max_ans_length = data_preparing(dict_path, prob_dict_path, qa_path, n_words)
 
@@ -196,6 +196,8 @@ if __name__ == '__main__':
     length_file.write(str(max_ans_length))
     length_file.close()
 
+    train_file.write(str(train_size))
+    train_file.write("\n")
     for i in range(train_size):
         train_file.write(' '.join(map(str, q[i])))
         train_file.write("\n")
@@ -209,6 +211,8 @@ if __name__ == '__main__':
         train_file.write("\n")
     train_file.close()
 
+    valid_file.write(str(valid_size))
+    valid_file.write("\n")
     for i in range(train_size, train_size + valid_size):
         valid_file.write(' '.join(map(str, q[i])))
         valid_file.write("\n")
@@ -221,6 +225,9 @@ if __name__ == '__main__':
         valid_file.write(' '.join(map(str, label[i])))
         valid_file.write("\n")
     valid_file.close()
+
+    test_file.write(str(qa_size-train_size-valid_size))
+    test_file.write("\n")
     for i in range(valid_size, qa_size):
         test_file.write(' '.join(map(str, q[i])))
         test_file.write("\n")

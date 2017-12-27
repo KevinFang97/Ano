@@ -1,30 +1,47 @@
+import numpy as np
+
 #store all data in memory:
-#use 3 array: q, ans, topic
+#use 3 numpy arr: q, ans, topic
 
 #retrieved these data from .txt --- written in preprocess.py
 
 class UbuntuDataset(data.Dataset):
-    def __init__(self, filepath, length_path):
-        length_file = open(length_path, 'r')
-        self.qa_size = int(length_file.readline())
+    def __init__(self, filepath, length_path, dataset_path):
+        #length_path = "data/data_length.txt"
+        #dataset_path = "data/train_dataset.txt" #or valid, test
+
+        length_file = open(length_path,'r')
+        dataset_file = open(dataset_path, 'r')
+
+        #read length
+        _ = length_file.readline()
         self.max_q_length = int(length_file.readline())
         self.max_ans_length = int(length_file.readline())
         length_file.close()
-        
-        print("loading data...")
-        q = []
-        ans = []
-        q_prob = []
-        ans_prob = []
-        label = []
+
+        #read dataset size
+        self.qa_size = int(dataset_file.readline())
+        print("loading data from ", dataset_path)
+        print("qa_size = ", self.qa_size)
+        #init 3 lists
+        q = np.zeros((qa_size, max_q_length), dtype='int32')
+        ans = np.zeros((qa_size, max_ans_length), dtype='int32')
+        label = np.zeros((qa_size,), dtype='int16')
         count = 0
+        #read data
         while count < qa_size:
-            
+            #implicit str->int
+            q[count] = dataset_file.readline().split()
+            ans[count] = dataset_file.readline().split()
+            _ = dataset_file.readline()
+            _ = dataset_file.readline()
+            label[count] = dataset_file.readline()
             count += 1
-        print("{} entries".format(self.data_len))
+        print("{} entries".format(self.qa_size))
 
 
-
+    #TODO !!! 
+    #(may need changes in train_once so that np -> torch happen there)
     def __getitem__(self, offset):
         # 1. Read one data from file (e.g. using numpy.fromfile, PIL.Image.open).
         # 2. Preprocess the data (e.g. torchvision.Transform).
